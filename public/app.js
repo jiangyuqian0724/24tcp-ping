@@ -515,12 +515,21 @@ function closeDetailsModal() {
 }
 
 async function loadDetailedHistory(monitorId, range) {
+    const tbody = document.getElementById('historyTableBody');
+    const historyCount = document.getElementById('historyCount');
+
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">正在加载历史数据...</td></tr>';
+    historyCount.textContent = '(加载中...)';
+
     try {
         const url = range === 'all'
             ? `/api/monitors/${monitorId}/history`
             : `/api/monitors/${monitorId}/history?range=${range}`;
 
         const response = await fetch(url);
+        if (!response.ok) throw new Error('Fetch failed');
+
         const history = await response.json();
         currentHistoryData = history;
 
@@ -535,9 +544,10 @@ async function loadDetailedHistory(monitorId, range) {
         drawDetailChart(history);
 
         // Update count
-        document.getElementById('historyCount').textContent = `(${history.length} 条记录)`;
+        historyCount.textContent = `(${history.length} 条记录)`;
     } catch (error) {
         console.error('Error loading detailed history:', error);
+        tbody.innerHTML = '<tr><td colspan="4" style="color: #ef4444; text-align: center; padding: 2rem;">加载失败，请刷新重试</td></tr>';
         showNotification('加载历史数据失败', 'error');
     }
 }
@@ -589,8 +599,10 @@ function updateHistoryTable(history) {
         return;
     }
 
-    // Reverse to show newest first
-    const reversedHistory = [...history].reverse();
+    // Limit table rows to prevent lag (e.g., last 500 records)
+    // The chart and CSV will still use all data
+    const displayLimit = 500;
+    const reversedHistory = [...history].reverse().slice(0, displayLimit);
 
     tbody.innerHTML = reversedHistory.map(record => {
         const date = new Date(record.timestamp);
@@ -611,6 +623,7 @@ function updateHistoryTable(history) {
             ? `${record.latency}ms`
             : '-';
 
+        const error = record.error || '-';
         const errorStyle = record.success ? 'color: var(--text-muted);' : 'color: #ef4444;';
 
         return `
@@ -622,6 +635,12 @@ function updateHistoryTable(history) {
             </tr>
         `;
     }).join('');
+
+    if (history.length > displayLimit) {
+        const infoRow = document.createElement('tr');
+        infoRow.innerHTML = `<td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">仅显示最近 ${displayLimit} 条记录，如需查看全部请导出 CSV</td>`;
+        tbody.appendChild(infoRow);
+    }
 }
 
 // Setup filter buttons

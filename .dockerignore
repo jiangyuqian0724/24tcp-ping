@@ -1,0 +1,14 @@
+# Docker 忽略文件
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+EXAMPLES.md
+STRUCTURE.md
+*.md
+.env
+*.log
+demo.sh
+start.sh
+.DS_Store

@@ -344,7 +344,10 @@ app.post('/api/monitors', (req, res) => {
     return res.status(400).json({ error: 'Host and port are required' });
   }
 
-  const id = `${host}:${port}`;
+  // Handle IPv6 address formatting for ID
+  const isIPv6 = host.includes(':') && !host.includes('[') && !host.includes(']');
+  const formattedHost = isIPv6 ? `[${host}]` : host;
+  const id = `${formattedHost}:${port}`;
 
   if (monitors.has(id)) {
     return res.status(409).json({ error: 'Monitor already exists' });

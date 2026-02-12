@@ -36,7 +36,7 @@ const monitors = new Map();
 const pingHistory = new Map();
 
 class TCPMonitor {
-  constructor(id, host, port, interval = 5000) {
+  constructor(id, host, port, interval = 1000) {
     this.id = id;
     this.host = host;
     this.port = port;
@@ -353,7 +353,7 @@ app.post('/api/monitors', (req, res) => {
     return res.status(409).json({ error: 'Monitor already exists' });
   }
 
-  const monitor = new TCPMonitor(id, host, parseInt(port), interval || 5000);
+  const monitor = new TCPMonitor(id, host, parseInt(port), interval || 1000);
   monitors.set(id, monitor);
   monitor.start();
   saveData(); // Persist new monitor

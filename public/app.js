@@ -211,12 +211,19 @@ function updateMonitor(monitor) {
 
     // Update stats
     const latencyValue = card.querySelector('.latency-value');
-    latencyValue.textContent = monitor.stats.lastLatency > 0 ?
-        `${monitor.stats.lastLatency}ms` : '-';
+    if (monitor.stats.lastStatus === 'online') {
+        latencyValue.textContent = `${monitor.stats.lastLatency}ms`;
+        latencyValue.style.color = '#10b981';
+    } else {
+        latencyValue.textContent = '超时';
+        latencyValue.style.color = '#ef4444';
+    }
 
     const successRate = monitor.stats.totalPings > 0 ?
         ((monitor.stats.successfulPings / monitor.stats.totalPings) * 100).toFixed(1) : 0;
-    card.querySelector('.success-rate').textContent = `${successRate}%`;
+    const successRateEl = card.querySelector('.success-rate');
+    successRateEl.textContent = `${successRate}%`;
+    successRateEl.style.color = parseFloat(successRate) < 100 ? '#ef4444' : '#10b981';
 
     card.querySelector('.avg-latency').textContent = monitor.stats.averageLatency > 0 ?
         `${monitor.stats.averageLatency}ms` : '-';
@@ -233,7 +240,9 @@ function updateMonitor(monitor) {
     // Update uptime
     const uptimePercent = monitor.stats.totalPings > 0 ?
         ((monitor.stats.uptime / monitor.stats.totalPings) * 100).toFixed(1) : 0;
-    card.querySelector('.uptime-value').textContent = `${uptimePercent}%`;
+    const uptimeEl = card.querySelector('.uptime-value');
+    uptimeEl.textContent = `${uptimePercent}%`;
+    uptimeEl.style.color = parseFloat(uptimePercent) < 100 ? '#ef4444' : '#10b981';
 
     // Update chart
     updateChart(monitor.id, monitor.stats.lastLatency, monitor.stats.lastStatus === 'online');
@@ -602,14 +611,14 @@ function updateHistoryTable(history) {
             ? `${record.latency}ms`
             : '-';
 
-        const error = record.error || '-';
+        const errorStyle = record.success ? 'color: var(--text-muted);' : 'color: #ef4444;';
 
         return `
-            <tr>
+            <tr style="${record.success ? '' : 'background: rgba(239, 68, 68, 0.03);'}">
                 <td>${timeStr}</td>
                 <td>${statusBadge}</td>
                 <td>${latency}</td>
-                <td style="color: var(--text-muted); font-size: 0.8125rem;">${error}</td>
+                <td style="${errorStyle} font-size: 0.8125rem;">${error}</td>
             </tr>
         `;
     }).join('');

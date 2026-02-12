@@ -909,20 +909,6 @@ function drawDetailChart(history) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Draw points
-    successData.forEach((point, index) => {
-        const x = padding.left + (chartWidth / (successData.length - 1)) * index;
-        const y = padding.top + chartHeight - ((point.latency - minLatency) / latencyRange) * chartHeight;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = '#10b981';
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-    });
-
     // Draw title
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 14px Inter';

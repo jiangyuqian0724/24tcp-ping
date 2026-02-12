@@ -22,8 +22,16 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 // Default Settings
 let systemSettings = {
   pingTimeout: 5000,
-  maxHistory: 1000
+  maxHistory: 1000,
+  saveInterval: 60
 };
+
+let saveTimer = null;
+
+function startSaveTimer() {
+  if (saveTimer) clearInterval(saveTimer);
+  saveTimer = setInterval(saveData, systemSettings.saveInterval * 1000);
+}
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -236,8 +244,8 @@ function loadData() {
   }
 }
 
-// Auto-save data every 60 seconds
-setInterval(saveData, 60000);
+// Start auto-save timer
+startSaveTimer();
 
 // Save data on process exit
 process.on('SIGINT', () => {
@@ -427,9 +435,13 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.patch('/api/settings', (req, res) => {
-  const { pingTimeout, maxHistory } = req.body;
+  const { pingTimeout, maxHistory, saveInterval } = req.body;
 
   if (pingTimeout !== undefined) systemSettings.pingTimeout = parseInt(pingTimeout);
+  if (saveInterval !== undefined) {
+    systemSettings.saveInterval = parseInt(saveInterval);
+    startSaveTimer(); // Restart timer with new interval
+  }
   if (maxHistory !== undefined) {
     systemSettings.maxHistory = parseInt(maxHistory);
     // Trim history for all monitors if limit decreased and is not 0

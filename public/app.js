@@ -657,6 +657,7 @@ async function openSettingsModal() {
 
         document.getElementById('pingTimeout').value = settings.pingTimeout;
         document.getElementById('maxHistory').value = settings.maxHistory;
+        document.getElementById('saveInterval').value = settings.saveInterval;
 
         const modal = document.getElementById('settingsModal');
         modal.classList.add('show');
@@ -676,6 +677,7 @@ async function handleSaveSettings(e) {
 
     const pingTimeout = parseInt(document.getElementById('pingTimeout').value);
     const maxHistory = parseInt(document.getElementById('maxHistory').value);
+    const saveInterval = parseInt(document.getElementById('saveInterval').value);
 
     try {
         const response = await fetch('/api/settings', {
@@ -683,7 +685,7 @@ async function handleSaveSettings(e) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ pingTimeout, maxHistory })
+            body: JSON.stringify({ pingTimeout, maxHistory, saveInterval })
         });
 
         if (response.ok) {

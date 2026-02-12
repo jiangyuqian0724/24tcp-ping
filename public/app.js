@@ -836,16 +836,24 @@ function drawDetailChart(history) {
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
-    // Get latencies and timestamps
+    // Get latencies for Y-axis scale (using success data only)
     const successData = history.filter(h => h.success && h.latency > 0);
     const latencies = successData.map(h => h.latency);
-    const timestamps = successData.map(h => h.timestamp);
 
     if (latencies.length === 0) {
         ctx.fillStyle = '#ef4444';
         ctx.font = '14px Inter';
         ctx.textAlign = 'center';
         ctx.fillText('所有检测都失败了', width / 2, height / 2);
+
+        // Even if all failed, show failure bars
+        history.forEach((point, index) => {
+            if (!point.success) {
+                const x = padding.left + (chartWidth / (history.length - 1)) * index;
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+                ctx.fillRect(x - 1, padding.top, 2, chartHeight);
+            }
+        });
         return;
     }
 
@@ -874,10 +882,10 @@ function drawDetailChart(history) {
     }
 
     // Vertical grid lines and X-axis labels
-    const timeStep = Math.ceil(successData.length / 6);
+    const timeStep = Math.ceil(history.length / 6);
     for (let i = 0; i <= 6; i++) {
-        const index = Math.min(i * timeStep, successData.length - 1);
-        const x = padding.left + (chartWidth / (successData.length - 1)) * index;
+        const index = Math.min(i * timeStep, history.length - 1);
+        const x = padding.left + (chartWidth / (history.length - 1)) * index;
 
         ctx.strokeStyle = 'rgba(102, 126, 234, 0.1)';
         ctx.beginPath();
@@ -886,12 +894,9 @@ function drawDetailChart(history) {
         ctx.stroke();
 
         // X-axis labels
-        const date = new Date(timestamps[index]);
+        const date = new Date(history[index].timestamp);
         const timeStr = date.toLocaleString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
         });
         ctx.fillStyle = '#a5b4fc';
         ctx.font = '11px Inter';
@@ -903,17 +908,43 @@ function drawDetailChart(history) {
         ctx.restore();
     }
 
-    // Draw area fill
-    ctx.beginPath();
-    ctx.moveTo(padding.left, padding.top + chartHeight);
-
-    successData.forEach((point, index) => {
-        const x = padding.left + (chartWidth / (successData.length - 1)) * index;
-        const y = padding.top + chartHeight - ((point.latency - minLatency) / latencyRange) * chartHeight;
-        ctx.lineTo(x, y);
+    // Draw failure bars first (so they are in background)
+    history.forEach((point, index) => {
+        if (!point.success) {
+            const x = padding.left + (chartWidth / (history.length - 1)) * index;
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+            ctx.fillRect(x - 1, padding.top, 2, chartHeight);
+        }
     });
 
-    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    // Draw area fill
+    ctx.beginPath();
+    let firstPoint = true;
+    history.forEach((point, index) => {
+        if (point.success) {
+            const x = padding.left + (chartWidth / (history.length - 1)) * index;
+            const y = padding.top + chartHeight - ((point.latency - minLatency) / latencyRange) * chartHeight;
+            if (firstPoint) {
+                ctx.moveTo(x, padding.top + chartHeight);
+                ctx.lineTo(x, y);
+                firstPoint = false;
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+    });
+    // Close the path correctly
+    let lastSuccessIndex = -1;
+    for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i].success) {
+            lastSuccessIndex = i;
+            break;
+        }
+    }
+    if (lastSuccessIndex !== -1) {
+        const lx = padding.left + (chartWidth / (history.length - 1)) * lastSuccessIndex;
+        ctx.lineTo(lx, padding.top + chartHeight);
+    }
     ctx.closePath();
 
     const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
@@ -924,14 +955,18 @@ function drawDetailChart(history) {
 
     // Draw line
     ctx.beginPath();
-    successData.forEach((point, index) => {
-        const x = padding.left + (chartWidth / (successData.length - 1)) * index;
-        const y = padding.top + chartHeight - ((point.latency - minLatency) / latencyRange) * chartHeight;
+    let lineStarted = false;
+    history.forEach((point, index) => {
+        if (point.success) {
+            const x = padding.left + (chartWidth / (history.length - 1)) * index;
+            const y = padding.top + chartHeight - ((point.latency - minLatency) / latencyRange) * chartHeight;
 
-        if (index === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
+            if (!lineStarted) {
+                ctx.moveTo(x, y);
+                lineStarted = true;
+            } else {
+                ctx.lineTo(x, y);
+            }
         }
     });
 
@@ -943,7 +978,7 @@ function drawDetailChart(history) {
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 14px Inter';
     ctx.textAlign = 'center';
-    ctx.fillText(`延迟趋势 (${successData.length} 个数据点)`, width / 2, 20);
+    ctx.fillText(`延迟趋势 (${successData.length} 个成功点)`, width / 2, 20);
 
     // Draw stats
     const avgLatency = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);

@@ -74,6 +74,9 @@ function setupEventListeners() {
 
     const editForm = document.getElementById('editMonitorForm');
     editForm.addEventListener('submit', handleEditMonitor);
+
+    const settingsForm = document.getElementById('settingsForm');
+    settingsForm.addEventListener('submit', handleSaveSettings);
 }
 
 async function handleAddMonitor(e) {
@@ -473,6 +476,7 @@ document.head.appendChild(style);
 // Details Modal Functions
 let currentMonitorId = null;
 let currentTimeRange = 'all';
+let currentHistoryData = [];
 
 function openDetailsModal(monitorId) {
     currentMonitorId = monitorId;
@@ -509,6 +513,7 @@ async function loadDetailedHistory(monitorId, range) {
 
         const response = await fetch(url);
         const history = await response.json();
+        currentHistoryData = history;
 
         // Calculate statistics
         const stats = calculateDetailedStats(history);
@@ -627,11 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDetailedHistory(currentMonitorId, range);
         });
     });
-
-    // Close edit modal on background click
-    document.getElementById('editModal').addEventListener('click', (e) => {
-        if (e.target.id === 'editModal') {
-            closeEditModal();
+    // Close settings modal on background click
+    document.getElementById('settingsModal').addEventListener('click', (e) => {
+        if (e.target.id === 'settingsModal') {
+            closeSettingsModal();
         }
     });
 
@@ -640,9 +644,92 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             if (currentMonitorId) closeDetailsModal();
             if (editMonitorId) closeEditModal();
+            if (document.getElementById('settingsModal').classList.contains('show')) closeSettingsModal();
         }
     });
 });
+
+// Settings Modal Functions
+async function openSettingsModal() {
+    try {
+        const response = await fetch('/api/settings');
+        const settings = await response.json();
+
+        document.getElementById('pingTimeout').value = settings.pingTimeout;
+        document.getElementById('maxHistory').value = settings.maxHistory;
+
+        const modal = document.getElementById('settingsModal');
+        modal.classList.add('show');
+    } catch (error) {
+        console.error('Error loading settings:', error);
+        showNotification('加载设置失败', 'error');
+    }
+}
+
+function closeSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    modal.classList.remove('show');
+}
+
+async function handleSaveSettings(e) {
+    e.preventDefault();
+
+    const pingTimeout = parseInt(document.getElementById('pingTimeout').value);
+    const maxHistory = parseInt(document.getElementById('maxHistory').value);
+
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pingTimeout, maxHistory })
+        });
+
+        if (response.ok) {
+            closeSettingsModal();
+            showNotification('配置已成功保存并应用', 'success');
+        } else {
+            const error = await response.json();
+            showNotification(error.error || '保存失败', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        showNotification('网络错误', 'error');
+    }
+}
+
+// Export to CSV
+function exportToCSV() {
+    if (!currentHistoryData || currentHistoryData.length === 0) {
+        showNotification('没有可导出的数据', 'error');
+        return;
+    }
+
+    const headers = ['时间', '状态', '延迟(ms)', '错误信息'];
+    const rows = currentHistoryData.map(record => {
+        const date = new Date(record.timestamp);
+        const timeStr = date.toLocaleString('zh-CN');
+        const status = record.success ? '成功' : '失败';
+        const latency = record.success ? record.latency : '-';
+        const error = record.error || '-';
+        return [timeStr, status, latency, `"${error.replace(/"/g, '""')}"`].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ping_history_${currentMonitorId}_${currentTimeRange}_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showNotification('CSV 已开始下载', 'success');
+}
 
 // Edit Modal Functions
 let editMonitorId = null;

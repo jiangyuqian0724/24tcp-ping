@@ -27,9 +27,18 @@
                     </svg>
                     <h1>TCP Ping Monitor</h1>
                 </div>
-                <div class="connection-status">
-                    <span class="status-dot" id="wsStatus"></span>
-                    <span id="wsStatusText">连接中...</span>
+                <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
+                    <button id="settingsBtn" class="btn btn-secondary btn-sm" onclick="openSettingsModal()" title="系统设置">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        系统设置
+                    </button>
+                    <div class="connection-status">
+                        <span class="status-dot" id="wsStatus"></span>
+                        <span id="wsStatusText">连接中...</span>
+                    </div>
                 </div>
             </div>
         </header>
@@ -217,11 +226,25 @@
 
             <div class="modal-body">
                 <div class="time-filter">
-                    <button class="filter-btn active" data-range="all">全部</button>
-                    <button class="filter-btn" data-range="1h">最近1小时</button>
-                    <button class="filter-btn" data-range="6h">最近6小时</button>
-                    <button class="filter-btn" data-range="24h">最近24小时</button>
-                    <button class="filter-btn" data-range="7d">最近7天</button>
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-range="all">全部</button>
+                        <button class="filter-btn" data-range="10m">10分钟</button>
+                        <button class="filter-btn" data-range="30m">30分钟</button>
+                        <button class="filter-btn" data-range="1h">1小时</button>
+                        <button class="filter-btn" data-range="6h">6小时</button>
+                        <button class="filter-btn" data-range="24h">24小时</button>
+                        <button class="filter-btn" data-range="7d">7天</button>
+                        <button class="filter-btn" data-range="30d">30天</button>
+                    </div>
+                    <button id="exportCsvBtn" class="btn btn-secondary btn-sm" onclick="exportToCSV()"
+                        title="导出当前视图数据为 CSV">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right: 4px;">
+                            <path
+                                d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M7 10L12 15M12 15L17 10M12 15V3"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        导出 CSV
+                    </button>
                 </div>
 
                 <div class="details-stats">
@@ -279,6 +302,37 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>系统设置</h2>
+                <button class="modal-close" onclick="closeSettingsModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm" class="monitor-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="pingTimeout">默认检测超时 (毫秒)</label>
+                        <input type="number" id="pingTimeout" min="500" step="100" required>
+                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">单次 Ping 的最大等待时间，建议 1000-5000ms</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxHistory">历史记录上限 (条/监控)</label>
+                        <input type="number" id="maxHistory" min="100" max="10000" step="100" required>
+                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">每个监控项目保留的最大记录数</small>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">确认保存</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

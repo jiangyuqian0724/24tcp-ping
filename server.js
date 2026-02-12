@@ -17,6 +17,13 @@ app.use(express.static('public'));
 const DATA_DIR = path.join(__dirname, 'data');
 const MONITORS_FILE = path.join(DATA_DIR, 'monitors.json');
 const HISTORY_FILE = path.join(DATA_DIR, 'history.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+
+// Default Settings
+let systemSettings = {
+  pingTimeout: 5000,
+  maxHistory: 1000
+};
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -27,7 +34,6 @@ if (!fs.existsSync(DATA_DIR)) {
 // Data storage
 const monitors = new Map();
 const pingHistory = new Map();
-const MAX_HISTORY = 1000;
 
 class TCPMonitor {
   constructor(id, host, port, interval = 5000) {
@@ -62,7 +68,7 @@ class TCPMonitor {
           socket.destroy();
           resolve({ success: false, latency: 0, error: 'Timeout' });
         }
-      }, 5000);
+      }, systemSettings.pingTimeout);
 
       socket.connect(this.port, this.host, () => {
         if (!resolved) {
@@ -124,7 +130,7 @@ class TCPMonitor {
       });
 
       // Keep only last MAX_HISTORY entries
-      if (history.length > MAX_HISTORY) {
+      if (history.length > systemSettings.maxHistory) {
         history.shift();
       }
       pingHistory.set(this.id, history);
@@ -189,6 +195,9 @@ function saveData() {
     });
     fs.writeFileSync(HISTORY_FILE, JSON.stringify(historyData, null, 2));
 
+    // Save settings
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(systemSettings, null, 2));
+
     console.log('Data saved successfully');
   } catch (error) {
     console.error('Error saving data:', error);
@@ -215,6 +224,12 @@ function loadData() {
         pingHistory.set(key, historyData[key]);
       });
       console.log('Loaded ping history from disk');
+    }
+
+    // Load settings
+    if (fs.existsSync(SETTINGS_FILE)) {
+      systemSettings = { ...systemSettings, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) };
+      console.log('Loaded system settings from disk');
     }
   } catch (error) {
     console.error('Error loading data:', error);
@@ -297,10 +312,13 @@ app.get('/api/monitors/:id/history', (req, res) => {
 
   if (range) {
     const rangeMs = {
+      '10m': 10 * 60 * 1000,
+      '30m': 30 * 60 * 1000,
       '1h': 60 * 60 * 1000,
       '6h': 6 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
-      '7d': 7 * 24 * 60 * 60 * 1000
+      '7d': 7 * 24 * 60 * 60 * 1000,
+      '30d': 30 * 24 * 60 * 60 * 1000
     };
 
     if (rangeMs[range]) {
@@ -398,6 +416,29 @@ app.patch('/api/monitors/:id', (req, res) => {
   }
 
   res.json(monitor.getInfo());
+});
+
+// Settings API
+app.get('/api/settings', (req, res) => {
+  res.json(systemSettings);
+});
+
+app.patch('/api/settings', (req, res) => {
+  const { pingTimeout, maxHistory } = req.body;
+
+  if (pingTimeout !== undefined) systemSettings.pingTimeout = parseInt(pingTimeout);
+  if (maxHistory !== undefined) {
+    systemSettings.maxHistory = parseInt(maxHistory);
+    // Trim history for all monitors if limit decreased
+    pingHistory.forEach((history, id) => {
+      if (history.length > systemSettings.maxHistory) {
+        pingHistory.set(id, history.slice(-systemSettings.maxHistory));
+      }
+    });
+  }
+
+  saveData();
+  res.json(systemSettings);
 });
 
 // Serve index.html

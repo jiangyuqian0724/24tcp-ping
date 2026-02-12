@@ -28,10 +28,15 @@
                     <h1>TCP Ping Monitor</h1>
                 </div>
                 <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
-                    <button id="settingsBtn" class="btn btn-secondary btn-sm" onclick="openSettingsModal()" title="系统设置">
+                    <button id="settingsBtn" class="btn btn-secondary btn-sm" onclick="openSettingsModal()"
+                        title="系统设置">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path
+                                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         系统设置
                     </button>
@@ -313,21 +318,24 @@
                 <h2>系统设置</h2>
                 <button class="modal-close" onclick="closeSettingsModal()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="settingsForm" class="monitor-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <form id="settingsForm" class="monitor-form"
+                    style="display: flex; flex-direction: column; gap: 1.5rem;">
                     <div class="form-group">
                         <label for="pingTimeout">默认检测超时 (毫秒)</label>
                         <input type="number" id="pingTimeout" min="500" step="100" required>
-                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">单次 Ping 的最大等待时间，建议 1000-5000ms</small>
+                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">单次 Ping 的最大等待时间，建议
+                            1000-5000ms</small>
                     </div>
                     <div class="form-group">
                         <label for="maxHistory">历史记录上限 (条/监控)</label>
-                        <input type="number" id="maxHistory" min="100" max="10000" step="100" required>
-                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">每个监控项目保留的最大记录数</small>
+                        <input type="number" id="maxHistory" min="0" max="10000" step="100" required>
+                        <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">每个监控项目保留的最大记录数。设置为
+                            0 表示无限制存储。</small>
                     </div>
                     <div class="form-group" style="margin-top: 1rem;">
                         <button type="submit" class="btn btn-primary" style="width: 100%;">确认保存</button>

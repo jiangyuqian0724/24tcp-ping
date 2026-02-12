@@ -130,7 +130,7 @@ class TCPMonitor {
       });
 
       // Keep only last MAX_HISTORY entries
-      if (history.length > systemSettings.maxHistory) {
+      if (systemSettings.maxHistory > 0 && history.length > systemSettings.maxHistory) {
         history.shift();
       }
       pingHistory.set(this.id, history);
@@ -429,12 +429,14 @@ app.patch('/api/settings', (req, res) => {
   if (pingTimeout !== undefined) systemSettings.pingTimeout = parseInt(pingTimeout);
   if (maxHistory !== undefined) {
     systemSettings.maxHistory = parseInt(maxHistory);
-    // Trim history for all monitors if limit decreased
-    pingHistory.forEach((history, id) => {
-      if (history.length > systemSettings.maxHistory) {
-        pingHistory.set(id, history.slice(-systemSettings.maxHistory));
-      }
-    });
+    // Trim history for all monitors if limit decreased and is not 0
+    if (systemSettings.maxHistory > 0) {
+      pingHistory.forEach((history, id) => {
+        if (history.length > systemSettings.maxHistory) {
+          pingHistory.set(id, history.slice(-systemSettings.maxHistory));
+        }
+      });
+    }
   }
 
   saveData();
